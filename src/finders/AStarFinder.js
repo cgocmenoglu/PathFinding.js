@@ -13,7 +13,7 @@ var DiagonalMovement = require('../core/DiagonalMovement');
  * @param {DiagonalMovement} opt.diagonalMovement Allowed diagonal movement.
  * @param {function} opt.heuristic Heuristic function to estimate the distance
  *     (defaults to manhattan).
- * @param {integer} opt.weight Weight to apply to the heuristic to allow for suboptimal paths, 
+ * @param {integer} opt.weight Weight to apply to the heuristic to allow for suboptimal paths,
  *     in order to speed up the search.
  */
 function AStarFinder(opt) {
@@ -70,6 +70,9 @@ AStarFinder.prototype.findPath = function(startX, startY, endX, endY, grid) {
     openList.push(startNode);
     startNode.opened = true;
 
+    var turnPenalty = 1;
+    var lastDirection = undefined;
+
     // while the open list is not empty
     while (!openList.empty()) {
         // pop the position of node which has the minimum `f` value.
@@ -95,7 +98,12 @@ AStarFinder.prototype.findPath = function(startX, startY, endX, endY, grid) {
 
             // get the distance between current node and the neighbor
             // and calculate the next g score
-            ng = node.g + neighbor.cost + ((x - node.x === 0 || y - node.y === 0) ? 1 : SQRT2);
+            ng = node.g + neighbor.cost + ((x - node.x === 0 || y - node.y === 0) ? 1 : SQRT2); 
+
+            lastDirection = node.parent == undefined? undefined : { x : node.x - node.parent.x, y : node.y - node.parent.y };
+            var turned = lastDirection == undefined? 0 : lastDirection.x != x - node.x || lastDirection.y != y - node.y;
+            ng += turnPenalty * turned;
+
 
             // check if the neighbor has not been inspected yet, or
             // can be reached with smaller cost from the current node
